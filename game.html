@@ -111,10 +111,10 @@
 <h1 id="title">Puissance 4 🌸</h1>
 
 <div id="meta">
-  <form id="createGame">
-    <label for="player1">Ton pseudo :</label>
-    <input type="text" id="player1" placeholder="Ex: Estrela" required>
-    <button type="submit">Créer une partie</button>
+  <form id="playerForm">
+    <label for="playerName">Ton pseudo :</label>
+    <input type="text" id="playerName" placeholder="Ex: Estrela" required>
+    <button type="submit">Valider</button>
   </form>
 
   <div id="shareLinkSection" style="display:none;">
@@ -142,58 +142,64 @@
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
 
-  const createGameForm = document.getElementById("createGame");
-  const player1Input = document.getElementById("player1");
+  const playerForm = document.getElementById("playerForm");
+  const playerNameInput = document.getElementById("playerName");
   const statusDiv = document.getElementById("status");
   const boardDiv = document.getElementById("board");
   const shareLinkSection = document.getElementById("shareLinkSection");
   const shareLinkInput = document.getElementById("shareLink");
   const copyLinkBtn = document.getElementById("copyLinkBtn");
 
-  let playerPseudo = "";
+  let playerName = "";
   let playerNumber = 1;
   let gameId = null;
   let currentBoard = [];
   let currentTurn = 1;
+  let player1Name = "";
+  let player2Name = "";
 
   const urlParams = new URLSearchParams(window.location.search);
   const urlGameId = urlParams.get('game');
-  if(urlGameId){
-    gameId = urlGameId;
-    playerNumber = 2;
-    statusDiv.textContent = "Vous êtes le joueur 2, en attente du plateau...";
-    joinGame(gameId);
-  }
 
-  createGameForm.addEventListener("submit", async (e) => {
+  playerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    playerPseudo = player1Input.value.trim();
-    if(!playerPseudo) return alert("Merci d’entrer un pseudo !");
-    if(!gameId){
+    playerName = playerNameInput.value.trim();
+    if(!playerName) return alert("Merci d’entrer un pseudo !");
+
+    if(urlGameId){ // joueur 2 rejoint
+      gameId = urlGameId;
+      playerNumber = 2;
+      joinGame(gameId);
+      await update(ref(database, 'games/' + gameId), { player2: playerName });
+    } else { // joueur 1 crée
       gameId = Date.now().toString();
       playerNumber = 1;
+      player1Name = playerName;
       currentBoard = Array(6).fill().map(()=>Array(7).fill(0));
-      await set(ref(database, 'games/'+gameId), { player1: playerPseudo, board: currentBoard, turn:1 });
-      statusDiv.textContent = `Bienvenue ${playerPseudo} 👋. Partage ce lien :`;
+      await set(ref(database, 'games/' + gameId), { player1: playerName, board: currentBoard, turn:1 });
       shareLinkInput.value = `${window.location.origin}${window.location.pathname}?game=${gameId}`;
       shareLinkSection.style.display = "block";
+      statusDiv.textContent = `Bienvenue ${playerName} 👋. Partage le lien pour inviter un joueur.`;
     }
+    playerForm.style.display = "none";
     createBoard();
   });
 
   function joinGame(gameId){
     const gameRef = ref(database,'games/'+gameId);
-    get(gameRef).then(snapshot=>{
-      const data = snapshot.val();
-      if(!data.player2) update(gameRef,{player2:"Joueur2"});
-    });
     onValue(gameRef,snapshot=>{
       const data = snapshot.val();
       if(!data) return;
       currentBoard = data.board;
       currentTurn = data.turn;
+      player1Name = data.player1;
+      player2Name = data.player2 || "Joueur 2";
       updateBoard();
-      statusDiv.textContent = currentTurn===playerNumber ? "À votre tour !" : "Tour de l'autre joueur...";
+      if(currentBoard.flat().every(c=>c===0) && playerNumber===2){
+        statusDiv.textContent = `Vous êtes ${player2Name}, en attente de l'autre joueur...`;
+      } else {
+        statusDiv.textContent = currentTurn===playerNumber ? "À votre tour !" : `Tour de ${currentTurn===1?player1Name:player2Name}`;
+      }
     });
   }
 
@@ -247,7 +253,7 @@
           r+=dx; c+=dy;
         }
       }
-      if(count>=4){ alert(`Joueur ${player} a gagné !`); return; }
+      if(count>=4){ alert(`${player===1?player1Name:player2Name} a gagné !`); return; }
     }
   }
 
@@ -258,6 +264,5 @@
   });
 
 </script>
-
 </body>
 </html>
