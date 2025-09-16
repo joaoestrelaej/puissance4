@@ -1,20 +1,59 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Accueil - Puissance 4</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Puissance 4 - Accueil</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Bienvenue sur Puissance 4</h1>
-  <form action="game.html" method="GET">
+  <h1>Puissance 4 — Invite un collègue</h1>
+
+  <form id="createForm">
     <label>Ton pseudo :
-      <input type="text" name="player1" required>
-    </label><br>
+      <input id="player1" name="player1" type="text" required placeholder="Moi">
+    </label>
     <label>Pseudo du collègue :
-      <input type="text" name="player2" required>
-    </label><br>
-    <button type="submit">Démarrer la partie</button>
+      <input id="player2" name="player2" type="text" required placeholder="Collègue">
+    </label>
+    <div style="margin-top:12px;">
+      <button type="submit">Créer la partie</button>
+    </div>
   </form>
+
+  <hr style="width:60%; margin:24px auto; opacity:0.4">
+
+  <div id="joinSection">
+    <label>Rejoindre une partie (colle ici le lien reçu) :</label>
+    <input id="joinLink" type="text" placeholder="https://.../game.html?game=abc123">
+    <button id="btnJoin">Rejoindre</button>
+  </div>
+
+  <script>
+    // Quand on crée : génère gameId et redirige vers game.html?game=ID&player=1&pname=...
+    function randomId(len=6){
+      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+      let id = "";
+      for(let i=0;i<len;i++) id += chars[Math.floor(Math.random()*chars.length)];
+      return id;
+    }
+
+    const createForm = document.getElementById('createForm');
+    createForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const player1 = document.getElementById('player1').value.trim() || 'Joueur1';
+      const player2 = document.getElementById('player2').value.trim() || 'Joueur2';
+      const gameId = randomId(7);
+      // On passe player1 comme p1 (créateur) et player2 comme p2 (invité)
+      const url = `game.html?game=${gameId}&p=1&pname=${encodeURIComponent(player1)}&opname=${encodeURIComponent(player2)}`;
+      window.location.href = url;
+    });
+
+    document.getElementById('btnJoin').addEventListener('click', ()=>{
+      const link = document.getElementById('joinLink').value.trim();
+      if(!link) return alert("Colle le lien de la partie reçu.");
+      window.location.href = link;
+    });
+  </script>
 </body>
 </html>
