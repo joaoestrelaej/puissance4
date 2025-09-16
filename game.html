@@ -1,15 +1,32 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Puissance 4</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Puissance 4 — Partie</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1 id="title">Puissance 4</h1>
+
+  <div id="meta">
+    <div>Partie : <span id="gameIdDisplay">—</span></div>
+    <div>Toi : <span id="meName">—</span> (joueur <span id="meNum">?</span>)</div>
+    <div>Adversaire : <span id="opponentName">—</span></div>
+  </div>
+
+  <div style="margin:12px;">
+    <button id="btnShare">Partager la partie</button>
+    <input id="shareLink" readonly style="width:360px;">
+  </div>
+
   <div id="board"></div>
   <p id="status"></p>
-  <button onclick="restart()">Rejouer</button>
+  <button id="btnRestart">Rejouer (reset partie)</button>
+
+  <!-- Firebase (compat pour simplicité) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <script src="script.js"></script>
 </body>
