@@ -35,11 +35,31 @@
   <div id="status">En attente d’un joueur...</div>
 
   <!-- Plateau -->
-  <div id="board">
-    <!-- Les cases seront générées par JavaScript -->
-  </div>
+  <div id="board"></div>
 
-  <!-- Script -->
-  <script src="script.js"></script>
+  <!-- Firebase Module -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB-q-IN52l0pOHUdOY3mVNTmhJVDpwMKqc",
+      authDomain: "puissance-4-1615e.firebaseapp.com",
+      projectId: "puissance-4-1615e",
+      storageBucket: "puissance-4-1615e.firebasestorage.app",
+      messagingSenderId: "534212183600",
+      appId: "1:534212183600:web:a5cbfd055881a3cdaa4ff5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Rendre Firebase accessible dans script.js
+    window.database = database;
+    window.firebaseFunctions = { ref, set, get, onValue, update };
+  </script>
+
+  <!-- Script principal -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>
