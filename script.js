@@ -1,33 +1,82 @@
-console.log("Script chargé ✅");
+import { ref, set, get, onValue, update } from './window.js'; // on utilise ceux exposés via window
+const database = window.database;
 
-// Sélection des éléments
+// Éléments HTML
 const createGameForm = document.getElementById("createGame");
 const player1Input = document.getElementById("player1");
 const statusDiv = document.getElementById("status");
 const boardDiv = document.getElementById("board");
-
-// Section partage
 const shareLinkSection = document.getElementById("shareLinkSection");
 const shareLinkInput = document.getElementById("shareLink");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
 let playerPseudo = "";
+let playerNumber = 1;
+let gameId = null;
 
-// Fonction pour générer un ID unique pour la partie
-function generateGameLink() {
-  const gameId = Date.now(); // simple ID basé sur l'heure
-  const link = `${window.location.origin}${window.location.pathname}?game=${gameId}`;
-  return link;
+// Vérifie si on rejoint via un lien
+const urlParams = new URLSearchParams(window.location.search);
+const urlGameId = urlParams.get('game');
+
+if (urlGameId) {
+  gameId = urlGameId;
+  playerNumber = 2;
+  statusDiv.textContent = "Vous êtes le joueur 2, en attente du plateau...";
+  joinGame(gameId);
 }
 
-// Fonction pour générer le plateau vide
-function createBoard() {
-  boardDiv.innerHTML = ""; // reset
-  const rows = 6;
-  const cols = 7;
+// Création d'une partie
+createGameForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  playerPseudo = player1Input.value.trim();
+  if (!playerPseudo) return alert("Merci d’entrer un pseudo !");
 
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
+  if (!gameId) {
+    gameId = Date.now().toString();
+    playerNumber = 1;
+
+    const gameRef = ref(database, 'games/' + gameId);
+    await set(gameRef, {
+      player1: playerPseudo,
+      board: Array(6).fill().map(() => Array(7).fill(0))
+    });
+
+    statusDiv.textContent = `Bienvenue ${playerPseudo} 👋. Partage ce lien :`;
+
+    const link = `${window.location.origin}${window.location.pathname}?game=${gameId}`;
+    shareLinkInput.value = link;
+    shareLinkSection.style.display = "block";
+  }
+
+  createBoard();
+});
+
+// Fonction pour rejoindre une partie
+function joinGame(gameId) {
+  const gameRef = ref(database, 'games/' + gameId);
+
+  // Mettre player2 dans Firebase
+  get(gameRef).then(snapshot => {
+    const data = snapshot.val();
+    if (!data.player2) {
+      update(gameRef, { player2: "Joueur2" });
+    }
+    statusDiv.textContent = `Vous êtes le joueur 2. Partie prête !`;
+    createBoard();
+  });
+
+  // Écoute les changements en temps réel
+  onValue(gameRef, snapshot => {
+    const data = snapshot.val();
+    console.log("Données Firebase :", data);
+  });
+}
+
+// Générer le plateau vide
+function createBoard() {
+  boardDiv.innerHTML = "";
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 7; c++) {
       const cell = document.createElement("div");
       cell.classList.add("cell");
       cell.dataset.row = r;
@@ -35,32 +84,7 @@ function createBoard() {
       boardDiv.appendChild(cell);
     }
   }
-  statusDiv.textContent += " Plateau prêt !";
 }
-
-// Gestion du formulaire pseudo
-createGameForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  playerPseudo = player1Input.value.trim();
-  if (!playerPseudo) {
-    alert("Merci d’entrer un pseudo !");
-    return;
-  }
-
-  statusDiv.textContent = `Bienvenue ${playerPseudo} 👋. En attente d’un autre joueur...`;
-
-  // Génère le plateau
-  createBoard();
-
-  // Génère le lien de partage
-  const gameLink = generateGameLink();
-  shareLinkInput.value = gameLink;
-  shareLinkSection.style.display = "block";
-
-  console.log("Pseudo du joueur 1 :", playerPseudo);
-  console.log("Lien de la partie :", gameLink);
-});
 
 // Copier le lien
 copyLinkBtn.addEventListener("click", () => {
