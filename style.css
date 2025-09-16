@@ -6,23 +6,35 @@ body {
   margin: 0;
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #ffeef7, #e0f7fa);
-  background-image: url("https://www.transparenttextures.com/patterns/floral.png");
+
+  /* Dégradé + motif fleurs */
+  background: linear-gradient(135deg, #ffeef7, #e0f7fa),
+              url("https://www.transparenttextures.com/patterns/floral.png");
   background-repeat: repeat;
   background-size: 300px 300px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   color: #333;
 }
 
+/* Titre */
 h1, #title {
   margin: 8px 0 16px;
   font-size: 2em;
   color: #444;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
 }
 
-#meta { display:flex; gap:18px; justify-content:center; margin-bottom:12px; flex-wrap:wrap; }
+/* Formulaire création / rejoindre */
+#meta { 
+  display: flex; 
+  gap: 18px; 
+  justify-content: center; 
+  margin-bottom: 12px; 
+  flex-wrap: wrap; 
+}
 
 form, #joinSection {
   background: rgba(255,255,255,0.85);
@@ -32,7 +44,12 @@ form, #joinSection {
   margin-bottom: 12px;
 }
 
-label { display:block; margin:8px 0; font-weight:600;}
+label { 
+  display:block; 
+  margin:8px 0; 
+  font-weight:600;
+}
+
 input[type="text"], input[type="url"] {
   padding:8px;
   border-radius:8px;
@@ -48,8 +65,12 @@ button {
   color:white;
   cursor:pointer;
   font-weight:600;
+  transition: transform 0.12s, background 0.3s;
 }
-button:hover { transform: translateY(-2px); }
+button:hover { 
+  transform: translateY(-2px); 
+  background:#ff809f;
+}
 
 /* Plateau */
 #board {
@@ -75,7 +96,13 @@ button:hover { transform: translateY(-2px); }
 }
 .cell:hover { transform: scale(1.06); }
 
+/* Jetons */
 .player1 { background: #ff8f9e; }   /* rouge pastel */
 .player2 { background: #ffe082; }   /* jaune pastel */
 
-#status { margin-top:12px; font-weight:600; color:#444; }
+/* Statut du jeu */
+#status { 
+  margin-top:12px; 
+  font-weight:600; 
+  color:#444; 
+}
