@@ -1,33 +1,81 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Puissance 4 — Partie</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <h1 id="title">Puissance 4</h1>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-  <div id="meta">
-    <div>Partie : <span id="gameIdDisplay">—</span></div>
-    <div>Toi : <span id="meName">—</span> (joueur <span id="meNum">?</span>)</div>
-    <div>Adversaire : <span id="opponentName">—</span></div>
-  </div>
+body {
+  font-family: "Poppins", sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffeef7, #e0f7fa);
+  background-image: url("https://www.transparenttextures.com/patterns/floral.png");
+  background-repeat: repeat;
+  background-size: 300px 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #333;
+}
 
-  <div style="margin:12px;">
-    <button id="btnShare">Partager la partie</button>
-    <input id="shareLink" readonly style="width:360px;">
-  </div>
+h1, #title {
+  margin: 8px 0 16px;
+  font-size: 2em;
+  color: #444;
+}
 
-  <div id="board"></div>
-  <p id="status"></p>
-  <button id="btnRestart">Rejouer (reset partie)</button>
+#meta { display:flex; gap:18px; justify-content:center; margin-bottom:12px; flex-wrap:wrap; }
 
-  <!-- Firebase (compat pour simplicité) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+form, #joinSection {
+  background: rgba(255,255,255,0.85);
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  margin-bottom: 12px;
+}
 
-  <script src="script.js"></script>
-</body>
-</html>
+label { display:block; margin:8px 0; font-weight:600;}
+input[type="text"], input[type="url"] {
+  padding:8px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  width:220px;
+}
+
+button {
+  padding:8px 14px;
+  border-radius:12px;
+  border:none;
+  background:#ffb3c6;
+  color:white;
+  cursor:pointer;
+  font-weight:600;
+}
+button:hover { transform: translateY(-2px); }
+
+/* Plateau */
+#board {
+  display: grid;
+  grid-template-columns: repeat(7, 70px);
+  grid-gap: 8px;
+  justify-content: center;
+  margin: 18px auto;
+  padding: 18px;
+  background: rgba(255,255,255,0.88);
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.cell {
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:#fafafa;
+  border:2px solid #cfcfcf;
+  cursor:pointer;
+  transition: transform 0.12s;
+}
+.cell:hover { transform: scale(1.06); }
+
+.player1 { background: #ff8f9e; }   /* rouge pastel */
+.player2 { background: #ffe082; }   /* jaune pastel */
+
+#status { margin-top:12px; font-weight:600; color:#444; }
