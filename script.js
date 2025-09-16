@@ -1,3 +1,22 @@
+const createGameForm = document.getElementById("createGame");
+const player1Input = document.getElementById("player1");
+const statusDiv = document.getElementById("status");
+
+createGameForm.addEventListener("submit", (e) => {
+  e.preventDefault(); 
+
+  const pseudo = player1Input.value.trim();
+
+  if (pseudo === "") {
+    alert("Merci d’entrer un pseudo !");
+    return;
+  }
+
+  statusDiv.textContent = `Bienvenue ${pseudo} 👋. En attente d’un autre joueur...`;
+
+  console.log("Pseudo du joueur 1 :", pseudo);
+});
+
 const firebaseConfig = {
   // <script type="module">
   // Import the functions you need from the SDKs you need
