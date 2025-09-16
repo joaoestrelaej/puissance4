@@ -3,178 +3,261 @@
 <head>
   <meta charset="UTF-8">
   <title>Puissance 4</title>
-  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* === STYLE === */
+    body {
+      font-family: "Poppins", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #ffeef7, #e0f7fa),
+                  url("https://www.transparenttextures.com/patterns/floral.png");
+      background-repeat: repeat;
+      background-size: 300px 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #333;
+    }
+
+    h1, #title {
+      margin: 8px 0 16px;
+      font-size: 2em;
+      color: #444;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    }
+
+    #meta { 
+      display: flex; 
+      gap: 18px; 
+      justify-content: center; 
+      margin-bottom: 12px; 
+      flex-wrap: wrap; 
+    }
+
+    form, #shareLinkSection {
+      background: rgba(255,255,255,0.85);
+      padding: 14px;
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+      margin-bottom: 12px;
+    }
+
+    label { 
+      display:block; 
+      margin:8px 0; 
+      font-weight:600;
+    }
+
+    input[type="text"], input[type="url"] {
+      padding:8px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      width:220px;
+    }
+
+    button {
+      padding:8px 14px;
+      border-radius:12px;
+      border:none;
+      background:#ffb3c6;
+      color:white;
+      cursor:pointer;
+      font-weight:600;
+      transition: transform 0.12s, background 0.3s;
+    }
+    button:hover { 
+      transform: translateY(-2px); 
+      background:#ff809f;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(7, 70px);
+      grid-gap: 8px;
+      justify-content: center;
+      margin: 18px auto;
+      padding: 18px;
+      background: rgba(255,255,255,0.88);
+      border-radius: 18px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    }
+
+    .cell {
+      width:70px;
+      height:70px;
+      border-radius:50%;
+      background:#fafafa;
+      border:2px solid #cfcfcf;
+      cursor:pointer;
+      transition: transform 0.12s;
+    }
+    .cell:hover { transform: scale(1.06); }
+
+    .player1 { background: #ff8f9e; }
+    .player2 { background: #ffe082; }
+
+    #status { 
+      margin-top:12px; 
+      font-weight:600; 
+      color:#444; 
+    }
+  </style>
 </head>
 <body>
-  <h1 id="title">Puissance 4 🌸</h1>
 
-  <div id="meta">
-    <form id="createGame">
-      <label for="player1">Ton pseudo :</label>
-      <input type="text" id="player1" placeholder="Ex: Estrela" required>
-      <button type="submit">Créer une partie</button>
-    </form>
+<h1 id="title">Puissance 4 🌸</h1>
 
-    <div id="shareLinkSection" style="display:none;">
-      <input type="text" id="shareLink" readonly>
-      <button id="copyLinkBtn">Copier le lien</button>
-    </div>
+<div id="meta">
+  <form id="createGame">
+    <label for="player1">Ton pseudo :</label>
+    <input type="text" id="player1" placeholder="Ex: Estrela" required>
+    <button type="submit">Créer une partie</button>
+  </form>
+
+  <div id="shareLinkSection" style="display:none;">
+    <input type="text" id="shareLink" readonly>
+    <button id="copyLinkBtn">Copier le lien</button>
   </div>
+</div>
 
-  <div id="status">En attente d’un joueur...</div>
+<div id="status">En attente d’un joueur...</div>
+<div id="board"></div>
 
-  <div id="board"></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
-  <!-- Firebase Module -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyB-q-IN52l0pOHUdOY3mVNTmhJVDpwMKqc",
+    authDomain: "puissance-4-1615e.firebaseapp.com",
+    projectId: "puissance-4-1615e",
+    storageBucket: "puissance-4-1615e.firebasestorage.app",
+    messagingSenderId: "534212183600",
+    appId: "1:534212183600:web:a5cbfd055881a3cdaa4ff5"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB-q-IN52l0pOHUdOY3mVNTmhJVDpwMKqc",
-      authDomain: "puissance-4-1615e.firebaseapp.com",
-      projectId: "puissance-4-1615e",
-      storageBucket: "puissance-4-1615e.firebasestorage.app",
-      messagingSenderId: "534212183600",
-      appId: "1:534212183600:web:a5cbfd055881a3cdaa4ff5"
-    };
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
 
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
+  const createGameForm = document.getElementById("createGame");
+  const player1Input = document.getElementById("player1");
+  const statusDiv = document.getElementById("status");
+  const boardDiv = document.getElementById("board");
+  const shareLinkSection = document.getElementById("shareLinkSection");
+  const shareLinkInput = document.getElementById("shareLink");
+  const copyLinkBtn = document.getElementById("copyLinkBtn");
 
-    // Éléments HTML
-    const createGameForm = document.getElementById("createGame");
-    const player1Input = document.getElementById("player1");
-    const statusDiv = document.getElementById("status");
-    const boardDiv = document.getElementById("board");
-    const shareLinkSection = document.getElementById("shareLinkSection");
-    const shareLinkInput = document.getElementById("shareLink");
-    const copyLinkBtn = document.getElementById("copyLinkBtn");
+  let playerPseudo = "";
+  let playerNumber = 1;
+  let gameId = null;
+  let currentBoard = [];
+  let currentTurn = 1;
 
-    let playerPseudo = "";
-    let playerNumber = 1; // 1 ou 2
-    let gameId = null;
-    let currentBoard = [];
-    let currentTurn = 1; // joueur 1 commence
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlGameId = urlParams.get('game');
+  if(urlGameId){
+    gameId = urlGameId;
+    playerNumber = 2;
+    statusDiv.textContent = "Vous êtes le joueur 2, en attente du plateau...";
+    joinGame(gameId);
+  }
 
-    // Vérifie si on rejoint via un lien
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlGameId = urlParams.get('game');
-
-    if (urlGameId) {
-      gameId = urlGameId;
-      playerNumber = 2;
-      statusDiv.textContent = "Vous êtes le joueur 2, en attente du plateau...";
-      joinGame(gameId);
+  createGameForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    playerPseudo = player1Input.value.trim();
+    if(!playerPseudo) return alert("Merci d’entrer un pseudo !");
+    if(!gameId){
+      gameId = Date.now().toString();
+      playerNumber = 1;
+      currentBoard = Array(6).fill().map(()=>Array(7).fill(0));
+      await set(ref(database, 'games/'+gameId), { player1: playerPseudo, board: currentBoard, turn:1 });
+      statusDiv.textContent = `Bienvenue ${playerPseudo} 👋. Partage ce lien :`;
+      shareLinkInput.value = `${window.location.origin}${window.location.pathname}?game=${gameId}`;
+      shareLinkSection.style.display = "block";
     }
+    createBoard();
+  });
 
-    // Création d'une partie
-    createGameForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      playerPseudo = player1Input.value.trim();
-      if (!playerPseudo) return alert("Merci d’entrer un pseudo !");
-
-      if (!gameId) {
-        gameId = Date.now().toString();
-        playerNumber = 1;
-        currentBoard = Array(6).fill().map(() => Array(7).fill(0));
-
-        await set(ref(database, 'games/' + gameId), {
-          player1: playerPseudo,
-          board: currentBoard,
-          turn: 1
-        });
-
-        statusDiv.textContent = `Bienvenue ${playerPseudo} 👋. Partage ce lien :`;
-        shareLinkInput.value = `${window.location.origin}${window.location.pathname}?game=${gameId}`;
-        shareLinkSection.style.display = "block";
-      }
-
-      createBoard();
+  function joinGame(gameId){
+    const gameRef = ref(database,'games/'+gameId);
+    get(gameRef).then(snapshot=>{
+      const data = snapshot.val();
+      if(!data.player2) update(gameRef,{player2:"Joueur2"});
     });
-
-    function joinGame(gameId) {
-      const gameRef = ref(database, 'games/' + gameId);
-
-      get(gameRef).then(snapshot => {
-        const data = snapshot.val();
-        if (!data.player2) update(gameRef, { player2: "Joueur2" });
-      });
-
-      onValue(gameRef, snapshot => {
-        const data = snapshot.val();
-        if (!data) return;
-        currentBoard = data.board;
-        currentTurn = data.turn;
-        updateBoard();
-        statusDiv.textContent = currentTurn === playerNumber ? "À votre tour !" : "Tour de l'autre joueur...";
-      });
-    }
-
-    function createBoard() {
-      boardDiv.innerHTML = "";
-      for (let r = 0; r < 6; r++) {
-        for (let c = 0; c < 7; c++) {
-          const cell = document.createElement("div");
-          cell.classList.add("cell");
-          cell.dataset.row = r;
-          cell.dataset.col = c;
-          cell.addEventListener("click", () => handleClick(r, c));
-          boardDiv.appendChild(cell);
-        }
-      }
+    onValue(gameRef,snapshot=>{
+      const data = snapshot.val();
+      if(!data) return;
+      currentBoard = data.board;
+      currentTurn = data.turn;
       updateBoard();
-    }
-
-    function updateBoard() {
-      for (let r = 0; r < 6; r++) {
-        for (let c = 0; c < 7; c++) {
-          const cell = boardDiv.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
-          cell.classList.remove("player1", "player2");
-          if (currentBoard[r][c] === 1) cell.classList.add("player1");
-          if (currentBoard[r][c] === 2) cell.classList.add("player2");
-        }
-      }
-    }
-
-    function handleClick(row, col) {
-      if (currentTurn !== playerNumber) return;
-      for (let r = 5; r >= 0; r--) {
-        if (currentBoard[r][col] === 0) {
-          currentBoard[r][col] = playerNumber;
-          update(ref(database, 'games/' + gameId), {
-            board: currentBoard,
-            turn: playerNumber === 1 ? 2 : 1
-          });
-          checkWin(r, col);
-          break;
-        }
-      }
-    }
-
-    function checkWin(row, col) {
-      const player = currentBoard[row][col];
-      const directions = [[[0,1],[0,-1]], [[1,0],[-1,0]], [[1,1],[-1,-1]], [[1,-1],[-1,1]]];
-      for (let dir of directions) {
-        let count = 1;
-        for (let [dx, dy] of dir) {
-          let r = row + dx, c = col + dy;
-          while (r >=0 && r<6 && c>=0 && c<7 && currentBoard[r][c]===player) {
-            count++;
-            r += dx; c += dy;
-          }
-        }
-        if (count >= 4) {
-          alert(`Joueur ${player} a gagné !`);
-          return;
-        }
-      }
-    }
-
-    copyLinkBtn.addEventListener("click", () => {
-      shareLinkInput.select();
-      document.execCommand("copy");
-      alert("Lien copié ! Envoie-le à ton collègue.");
+      statusDiv.textContent = currentTurn===playerNumber ? "À votre tour !" : "Tour de l'autre joueur...";
     });
-  </script>
+  }
+
+  function createBoard(){
+    boardDiv.innerHTML="";
+    for(let r=0;r<6;r++){
+      for(let c=0;c<7;c++){
+        const cell=document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.row=r;
+        cell.dataset.col=c;
+        cell.addEventListener("click",()=>handleClick(r,c));
+        boardDiv.appendChild(cell);
+      }
+    }
+    updateBoard();
+  }
+
+  function updateBoard(){
+    for(let r=0;r<6;r++){
+      for(let c=0;c<7;c++){
+        const cell = boardDiv.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+        cell.classList.remove("player1","player2");
+        if(currentBoard[r][c]===1) cell.classList.add("player1");
+        if(currentBoard[r][c]===2) cell.classList.add("player2");
+      }
+    }
+  }
+
+  function handleClick(row,col){
+    if(currentTurn!==playerNumber) return;
+    for(let r=5;r>=0;r--){
+      if(currentBoard[r][col]===0){
+        currentBoard[r][col]=playerNumber;
+        update(ref(database,'games/'+gameId),{board:currentBoard,turn:playerNumber===1?2:1});
+        checkWin(r,col);
+        break;
+      }
+    }
+  }
+
+  function checkWin(row,col){
+    const player = currentBoard[row][col];
+    const directions=[[[0,1],[0,-1]],[[1,0],[-1,0]],[[1,1],[-1,-1]],[[1,-1],[-1,1]]];
+    for(let dir of directions){
+      let count=1;
+      for(let [dx,dy] of dir){
+        let r=row+dx, c=col+dy;
+        while(r>=0&&r<6&&c>=0&&c<7&&currentBoard[r][c]===player){
+          count++;
+          r+=dx; c+=dy;
+        }
+      }
+      if(count>=4){ alert(`Joueur ${player} a gagné !`); return; }
+    }
+  }
+
+  copyLinkBtn.addEventListener("click",()=>{
+    shareLinkInput.select();
+    document.execCommand("copy");
+    alert("Lien copié ! Envoie-le à ton collègue.");
+  });
+
+</script>
+
+</body>
+</html>
