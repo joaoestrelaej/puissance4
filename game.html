@@ -11,12 +11,14 @@
   <h1 id="title">Puissance 4 🌸</h1>
 
   <div id="meta">
+    <!-- Formulaire pour entrer ton pseudo -->
     <form id="createGame">
       <label for="player1">Ton pseudo :</label>
       <input type="text" id="player1" placeholder="Ex: Estrela" required>
       <button type="submit">Créer une partie</button>
     </form>
 
+    <!-- Zone pour coller un lien de partie si tu veux rejoindre -->
     <div id="joinSection">
       <label for="gameLink">Lien de la partie :</label>
       <input type="url" id="gameLink" placeholder="Colle un lien ici">
@@ -24,12 +26,15 @@
     </div>
   </div>
 
+  <!-- Statut du jeu -->
   <div id="status">En attente d’un joueur...</div>
 
+  <!-- Plateau -->
   <div id="board">
     <!-- Les cases seront générées par JavaScript -->
   </div>
 
+  <!-- Script -->
   <script src="script.js"></script>
 </body>
 </html>
