@@ -1,4 +1,4 @@
-import { ref, set, get, onValue, update } from './window.js'; // on utilise ceux exposés via window
+import { ref, set, get, onValue, update } from './window.js';
 const database = window.database;
 
 // Éléments HTML
@@ -11,10 +11,12 @@ const shareLinkInput = document.getElementById("shareLink");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
 
 let playerPseudo = "";
-let playerNumber = 1;
+let playerNumber = 1; // 1 ou 2
 let gameId = null;
+let currentBoard = [];
+let currentTurn = 1; // joueur 1 commence
 
-// Vérifie si on rejoint via un lien
+// Récupère gameId depuis URL si on rejoint
 const urlParams = new URLSearchParams(window.location.search);
 const urlGameId = urlParams.get('game');
 
@@ -36,9 +38,12 @@ createGameForm.addEventListener("submit", async (e) => {
     playerNumber = 1;
 
     const gameRef = ref(database, 'games/' + gameId);
+    currentBoard = Array(6).fill().map(() => Array(7).fill(0));
+
     await set(gameRef, {
       player1: playerPseudo,
-      board: Array(6).fill().map(() => Array(7).fill(0))
+      board: currentBoard,
+      turn: 1
     });
 
     statusDiv.textContent = `Bienvenue ${playerPseudo} 👋. Partage ce lien :`;
@@ -51,28 +56,36 @@ createGameForm.addEventListener("submit", async (e) => {
   createBoard();
 });
 
-// Fonction pour rejoindre une partie
+// Rejoindre une partie
 function joinGame(gameId) {
   const gameRef = ref(database, 'games/' + gameId);
 
-  // Mettre player2 dans Firebase
+  // Ajouter player2 si vide
   get(gameRef).then(snapshot => {
     const data = snapshot.val();
     if (!data.player2) {
       update(gameRef, { player2: "Joueur2" });
     }
-    statusDiv.textContent = `Vous êtes le joueur 2. Partie prête !`;
-    createBoard();
   });
 
-  // Écoute les changements en temps réel
+  // Écoute en temps réel
   onValue(gameRef, snapshot => {
     const data = snapshot.val();
-    console.log("Données Firebase :", data);
+    if (!data) return;
+
+    currentBoard = data.board;
+    currentTurn = data.turn;
+    updateBoard();
+
+    if (currentTurn === playerNumber) {
+      statusDiv.textContent = "À votre tour !";
+    } else {
+      statusDiv.textContent = "Tour de l'autre joueur...";
+    }
   });
 }
 
-// Générer le plateau vide
+// Générer le plateau
 function createBoard() {
   boardDiv.innerHTML = "";
   for (let r = 0; r < 6; r++) {
@@ -81,7 +94,63 @@ function createBoard() {
       cell.classList.add("cell");
       cell.dataset.row = r;
       cell.dataset.col = c;
+      cell.addEventListener("click", () => handleClick(r, c));
       boardDiv.appendChild(cell);
+    }
+  }
+  updateBoard();
+}
+
+// Met à jour l'affichage du plateau
+function updateBoard() {
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 7; c++) {
+      const cell = boardDiv.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+      cell.classList.remove("player1", "player2");
+      if (currentBoard[r][c] === 1) cell.classList.add("player1");
+      if (currentBoard[r][c] === 2) cell.classList.add("player2");
+    }
+  }
+}
+
+// Gestion clic
+function handleClick(row, col) {
+  if (currentTurn !== playerNumber) return; // pas son tour
+  // Trouver la ligne la plus basse vide
+  for (let r = 5; r >= 0; r--) {
+    if (currentBoard[r][col] === 0) {
+      currentBoard[r][col] = playerNumber;
+      const gameRef = ref(database, 'games/' + gameId);
+      update(gameRef, {
+        board: currentBoard,
+        turn: playerNumber === 1 ? 2 : 1
+      });
+      checkWin(r, col);
+      break;
+    }
+  }
+}
+
+// Vérification victoire
+function checkWin(row, col) {
+  const player = currentBoard[row][col];
+  const directions = [
+    [[0,1],[0,-1]], [[1,0],[-1,0]], [[1,1],[-1,-1]], [[1,-1],[-1,1]]
+  ];
+
+  for (let dir of directions) {
+    let count = 1;
+    for (let [dx, dy] of dir) {
+      let r = row + dx, c = col + dy;
+      while (r >= 0 && r < 6 && c >=0 && c < 7 && currentBoard[r][c] === player) {
+        count++;
+        r += dx;
+        c += dy;
+      }
+    }
+    if (count >= 4) {
+      alert(`Joueur ${player} a gagné !`);
+      return;
     }
   }
 }
